@@ -4,11 +4,10 @@ import streamlit as st
 from streamlit_chat import message
 import requests
 
-
 # Chat GPT session
 chatbot = Chatbot(config={
-  "email": "", 
-  "password": ""
+  "email": "herr.nachiketh@gmail.com", 
+  "password": "Tasmaniandevil900"
 })
 
 print("Chatbot: ")
@@ -45,8 +44,8 @@ if 'generated' not in st.session_state:
 if 'past' not in st.session_state:
     st.session_state['past'] = []
 
-def query_chatgpt(user_query):
-    gpt_feedback = chatbot.ask(user_query)
+def query_chatgpt(user_input):
+    gpt_feedback = chatbot.ask(user_input) 
     prev_text = ""
     for data in gpt_feedback:
         # print(data)
