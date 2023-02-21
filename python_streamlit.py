@@ -3,11 +3,14 @@ from revChatGPT.V1 import Chatbot
 import streamlit as st
 from streamlit_chat import message
 import requests
+from datetime import datetime
+import time
 
+start_time = time.time()
 # Chat GPT session
 chatbot = Chatbot(config={
-  "email": "herr.nachiketh@gmail.com", 
-  "password": "Tasmaniandevil900"
+  "email": "duan92@purdue.edu", 
+  "password": "CDesign2023"
 })
 
 print("Chatbot: ")
@@ -44,8 +47,8 @@ if 'generated' not in st.session_state:
 if 'past' not in st.session_state:
     st.session_state['past'] = []
 
-def query_chatgpt(user_input):
-    gpt_feedback = chatbot.ask(user_input) 
+def query_chatgpt(user_query):
+    gpt_feedback = chatbot.ask(user_query)
     prev_text = ""
     for data in gpt_feedback:
         # print(data)
@@ -61,25 +64,46 @@ def query_chatgpt(user_input):
 
 def get_text():
     input_text = st.text_input("You: ",placeholder="Please type in your query")
-    return input_text 
+    now = datetime.now()
+    current_time = now.strftime("%d/%m/%Y %H:%M:%S")
+    
+    return input_text, current_time
 
 # users_input = get_text() 
 # print(users_input) 
 
-st.header("Chat GPT")
-user_input = get_text()
+dummy_input = st.text_input("Please type in you name before start:",placeholder="Please type in your name")
+
+# print(dummy_input)
+# clicked = st.button("START")
+
+# if clicked and dummy_input:
+st.header("Chat GPT Assistant")
+user_input, timeC = get_text()
+
 
 if user_input:
     print("user give some input:",user_input)
     output = query_chatgpt(user_input)
+    end_time = time.time()
+    execute_time = end_time - start_time
+    topic = "User name: " + dummy_input + "\ninput text: " + user_input + "\n@Time: " + str(timeC) + "\n@Execution Time: " + str(round(execute_time, 2)) + "s\n" + output
 
     st.session_state.past.append(user_input)
     st.session_state.generated.append(output)
+
+    filename = "ChatGPT"+str(datetime.today)+".txt"
+    btn = st.download_button(
+            label="Download txt",
+            data=topic,
+            file_name=filename
+    )
 
 if st.session_state['generated']:
     for i in range(len(st.session_state['generated'])-1, -1, -1):
         message(st.session_state["generated"][i], key=str(i))
         message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+
 
 # message(user_input)
     # st.write(prev_text)
