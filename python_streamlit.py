@@ -5,6 +5,10 @@ from streamlit_chat import message
 import requests
 from datetime import datetime
 import time
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+
 
 start_time = time.time()
 # Chat GPT session
@@ -72,7 +76,11 @@ def get_text():
 # users_input = get_text() 
 # print(users_input) 
 
-dummy_input = st.text_input("Please type in you name before start:",placeholder="Please type in your name")
+# hide remining part of the website until the user inputs a name
+nameEntered = False
+if(nameEntered ==False):
+    user_name = st.text_input("Please type in you name before start:",placeholder="Please type in your name(do this first or else the code breaks)")
+    nameEntered =True
 
 # print(dummy_input)
 # clicked = st.button("START")
@@ -87,17 +95,36 @@ if user_input:
     output = query_chatgpt(user_input)
     end_time = time.time()
     execute_time = end_time - start_time
-    topic = "User name: " + dummy_input + "\ninput text: " + user_input + "\n@Time: " + str(timeC) + "\n@Execution Time: " + str(round(execute_time, 2)) + "s\n" + output
+    file_data = "User name: " + user_name + "\ninput text: " + user_input + "\n@Time: " + str(timeC) + "\n@Execution Time: " + str(round(execute_time, 2)) + "s\n" + output
 
     st.session_state.past.append(user_input)
     st.session_state.generated.append(output)
 
-    filename = "ChatGPT"+str(datetime.today)+".txt"
-    btn = st.download_button(
-            label="Download txt",
-            data=topic,
-            file_name=filename
-    )
+    # filename = f"ChatGPT"{str(datetime.today)}.txt"
+    filename = f"{user_name}.txt"
+    print(filename)
+
+    f=open(filename, "a+")
+    f.write(file_data)
+    f.close()
+
+if st.button('End Session ?'):
+    # # Saving file to google drive
+    gauth = GoogleAuth()
+    drive = GoogleDrive(gauth)
+    file_to_upload = filename
+
+    f=open(filename, "r+")
+    file_content = f.read()
+    f.close()
+
+    file1 = drive.CreateFile({'title': filename})  # Create GoogleDriveFile instance with title filename.
+    file1.SetContentString(file_content) # Set content of the file from given string.
+    file1.Upload()
+
+    # delete users file after uploading 
+    os.remove(filename)
+
 
 if st.session_state['generated']:
     for i in range(len(st.session_state['generated'])-1, -1, -1):
@@ -105,52 +132,3 @@ if st.session_state['generated']:
         message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
 
 
-# message(user_input)
-    # st.write(prev_text)
-    # print("getting new output")
-    # print(prev_text)
-
-    # print()
-
-
-
-    # output = query({
-    #     "inputs": {
-    #         "past_user_inputs": st.session_state.past,
-    #         "generated_responses": st.session_state.generated,
-    #         "text": user_input,
-    #     },"parameters": {"repetition_penalty": 1.33},
-    # })
-
-    # st.session_state.past.append(user_input)
-
-    # st.session_state.generated.append(output["generated_text"])
-
-# if st.session_state['generated']:
-
-
-    # for i in range(len(st.session_state['generated'])-1, -1, -1):
-    #     message(st.session_state["generated"][i], key=str(i))
-    #     message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-
-# st.set_page_config(page_title="Brainstorming Buddy")
-
-# html_temp = """
-#                 <div style="background-color:{};padding:1px">
-                
-#                 </div>
-#                 """
-
-# import openai
-# openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# response = openai.Completion.create(
-#   model="text-davinci-003",
-#   prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: I'd like to cancel my subscription.\nAI:",
-#   temperature=0.9,
-#   max_tokens=150,
-#   top_p=1,
-#   frequency_penalty=0.0,
-#   presence_penalty=0.6,
-#   stop=[" Human:", " AI:"]
-# )
